@@ -1,7 +1,7 @@
 import { DataTypes } from "sequelize";
 import sequelize from "./db.js";
 
-const Activity = sequelize.define("activiti", {
+const Activity = sequelize.define("activity", {
   id: {
     type: DataTypes.INTEGER,
     primaryKey: true,
@@ -16,6 +16,10 @@ const Activity = sequelize.define("activiti", {
     allowNull: false,
   },
   type: {
+    type: DataTypes.STRING,
+    allowNull: false,
+  },
+  level: {
     type: DataTypes.STRING,
     allowNull: false,
   },
@@ -50,10 +54,19 @@ const Activity = sequelize.define("activiti", {
   contact_email: {
     type: DataTypes.STRING,
     allowNull: false,
+    // match: [
+    //   /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/,
+    //   "Please enter a valid email",
+    // ],
   },
   status: {
     type: DataTypes.STRING,
+    // ENUM[
+    //   ("draft", "open", "closed", "in_progress", "completed")
+    // ],
+
     allowNull: false,
+    default: "draft",
   },
 });
 

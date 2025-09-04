@@ -18,4 +18,5 @@ COPY . .
 EXPOSE 5000
 #for use nodemon in docker
 CMD [ "nodemon", "index.js" ] 
+# CMD [ "npm" ,"start" ]
 

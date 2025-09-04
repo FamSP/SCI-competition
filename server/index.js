@@ -6,7 +6,7 @@ const PORT = process.env.PORT || 5000;
 const FONTEND = process.env.FONT_END_ENV;
 import activityRounter from "./routers/activity.router.js";
 // import restaurantRouter from "./routers/restaurant.router.js";
-// import authRouter from "./routers/auth.router.js";
+import authRouter from "./routers/auth.router.js";
 import cors from "cors";
 
 app.use(
@@ -24,7 +24,7 @@ app.get("/", (req, res) => {
   res.send("Restaurant Restful API hbrhb");
 });
 // app.use("/api/v1/restaurant", restaurantRouter);
-// app.use("/api/v1/auth", authRouter);
+app.use("/api/v1/auth", authRouter);
 app.use("/api/v1/activity", activityRounter);
 app.listen(PORT, () => {
   console.log("Listening to http://localhost:" + PORT);
@@ -33,13 +33,14 @@ app.listen(PORT, () => {
 // import db from "./models/index.js";
 // const role = db.Role;
 
-// // const initRole = () => {
-// //   role.create({ id: 1, name: "user" });
-// //   role.create({ id: 2, name: "moderator" });
-// //   role.create({ id: 3, name: "admin" });
-// // };
+// const initRole = () => {
+//   role.create({ id: 1, name: "admin" });
+//   role.create({ id: 2, name: "manager" });
+//   role.create({ id: 3, name: "teacher" });
+//   role.create({ id: 4, name: "judge" });
+// };
 
-// // db.sequelize.sync({ force: false }).then(() => {
-// //   initRole();
-// //   console.log("Drop Sync");
-// // });
+// db.sequelize.sync({ force: true }).then(() => {
+//   initRole();
+//   console.log("Drop Sync");
+// });
