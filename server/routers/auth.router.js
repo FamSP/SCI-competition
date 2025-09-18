@@ -1,12 +1,15 @@
-import authController from "../controllers/auth.controller.js";
+import authController from "../controllers/auth.controller.js"; // import controller สำหรับ auth
 
+import express from "express"; // import express
+const router = express.Router(); // สร้าง router object
 
-import express from "express";
-const router = express.Router();
-// POST http://localhost:5000/api/v1/auth
-router.post("/signup", authController.signUp);
+// POST สมัครสมาชิก
+router.post("/signup", authController.signUp); // path /api/v1/register/signup
 
-// POST http://localhost:5000/api/v1/auth
-router.post("/signin", authController.signIn);
+// POST เข้าสู่ระบบ
+// router.post("/signin",authController.signIn); // path /api/v1/register/signin
 
-export default router;
+//GET ยืนยันอีเมล
+router.get("/verify/:token", authController.verifyEmail);
+
+export default router; // ส่งออก router

@@ -1,184 +1,135 @@
 import db from "../models/index.js";
-import config from "../config/auth.config.js";
-import jwt from "jsonwebtoken";
-import crypto from "crypto";
-//สำหรับใช้ or
-import { Op } from "sequelize";
+import crypto from "crypto"; // สำหรับสร้าง token แบบสุ่ม
+import { sendVerificationEmail } from "../utils/email.js";
+import path from "path";
+
 const User = db.User;
 
-const authController = {};
-
-authController.signUp = async (req, res) => {
-  const { username, name, email, password } = req.body;
-  if (!username || !name || !email || !password) {
-    res.status(400).send({ message: "Pleas provide all required fields" });
-    return;
-  }
-  await User.findOne({ where: { username } })
-    // .select(-password)
-    .then((user) => {
-      if (user) {
-        res.status(400).send({ message: "Username are already existed" });
-        return;
-      }
-      const newUser = {
-        username,
-        name,
-        email,
-        password: bcrypt.hashSync(password, 8),
-      };
-      User.create(newUser)
-        .then((user) => {
-          if (req.body.roles) {
-            //SELECT * FROM Role WHERE name=role 1OR name=role2
-            Role.findAll({
-              where: {
-                name: {
-                  [Op.or]: req.body.roles,
-                },
-              },
-            }).then((roles) => {
-              if (roles?.length === 0) {
-                user.setRoles([3]).then(() => {
-                  res.send({ message: "User registered succesfully3" });
-                });
-              }
-              user.setRoles(roles).then(() => {
-                res.send({ message: "User registered succesfully1" });
-              });
-            });
-          } else {
-            user.setRoles([3]).then(() => {
-              res.send({ message: "User registered succesfully2" });
-            });
-          }
-        })
-        .catch((error) => {
-          res.status(500).send({ message: error.message || "Something error" });
-        });
-    });
-};
-
-authController.signIn = async (req, res) => {
-  const { username, password } = req.body;
-  if (!username || !password) {
-    res.status(400).send({ message: "Username or Password are missing" });
-    return;
-  }
-  await User.findOne({ where: { username: username } }).then((user) => {
-    if (!user) {
-      res.status(404).send({ message: "Username not found." });
-      return;
-    }
-    const passworisValid = bcrypt.compareSync(password, user.password);
-    if (!passworisValid) {
-      res.status(401).send({ message: "invalid Password" });
-    }
-
-    //Valid USer
-    const token = jwt.sign({ username: user.username }, config.secret, {
-      expiresIn: 86400, //60 sec * 60min * 24hr
-    });
-
-    const authorities = [];
-    user
-      .getRoles()
-      .then((roles) => {
-        for (let i = 0; i < roles.length; i++) {
-          authorities.push("ROLES_" + roles[i].name.toUpperCase());
-        }
-        res.send({
-          token: token,
-          authorities: authorities,
-          userInfo: {
-            name: user.name,
-            email: user.email,
-            username: user.username,
-          },
-        });
-      })
-
-      .catch((error) => {
-        res.status(500).send({ message: error.message || "Something error" });
-      });
-  });
-};
-
+// register
 const signUp = async (req, res) => {
-  const { email, password, type, name, school, phone } = req.body;
+  const { email, password, type, name } = req.body;
+
   try {
-    //Check validation
+    // validation request check
     if (!email || !password || !type || !name) {
-      res
+      return res
         .status(400)
-        .send({ message: "email, password, type and name are required !" });
-      return;
+        .send({ message: "Please provide all required fields!" });
     }
-    //Validdate user Type
-    const allowedType = ['admin,"teacher', "judge"];
-    if (!allowedType.includes(type)) {
-      res.status(400).send({
-        message: "invalid user type. Must be admin, teacher or judge",
-      });
-    }
-    //Additionnal varidation
-    if ((type === "teacher" && school) || !phone) {
-      res
-        .status(400)
-        .send({ message: "school and phone are required for teacher" });
+    // check user type is valid
+    const allowedTypes = ["admin", "teacher", "judge"]; // กำหนดประเภทที่อนุญาต ถ้าทำเป็น enum ก็ได้ แต่ จะ error
+    if (!allowedTypes.includes(type)) {
+      return res.status(400).send({ message: "Invalid user type!" });
     }
 
-    // check if user existe
-    const existingUser = await User.finOne({
-      where: {
-        email: email,
-      },
-    });
-    if (existingUser) {
-      res.status(400).send({ message: "Email already exist!" });
+    // check additional fields for teacher type
+    const { school, phone } = req.body; // ดึงข้อมูล school และ phone จาก request body
+    if (type === "teacher" && (!school || !phone)) {
+      // ถ้า type เป็น teacher ต้องมี school และ phone ด้วย
+      return res
+        .status(400)
+        .send({ message: "Please provide school and phone for teacher type!" });
     }
-    const newData = {
-      email: email,
-      password: password,
-      type: type,
-      name: name,
-    };
+
+    // check email already exists
+    const existingUser = await User.findOne({ where: { email: email } }); // หา user ที่มี email ตรงกับที่ส่งมา
+    // ไม่ใช้ then เพราะมี await
+    if (existingUser) {
+      return res.status(400).send({ message: "Email is already in use!" });
+    }
+
+    //Create user object
+    const userData = { email, password, type, name }; // สร้าง object userData จากข้อมูลที่ได้รับมา
     if (type === "teacher") {
       userData.school = school;
       userData.phone = phone;
     }
-    const user = await User.create(newData);
 
-    // if user is a teacher , create and send verification email
+    // create new user
+    const user = await User.create(userData);
+
+    //if user is a teacher , create and sent verification email
     if (type === "teacher") {
       try {
-        const token = crypto.randomBytes(34).toString("hex");
+        //create verification token
+        const token = crypto.randomBytes(32).toString("hex"); // สร้าง token แบบสุ่ม 32 bytes แล้วแปลงเป็น hex string ฐาน 16
         const verification = await db.VerificationToken.create({
           token,
           userId: user.id,
-          expiresAt: new Data(Date.now() + 24 * 60 * 60 * 1000), // 24hour
+          expiredAt: new Date(Date.now() + 24 * 60 * 60 * 1000), // หมดอายุใน 24 ชั่วโมง
         });
-        
-      } catch (error) {}
+        console.log("verification token created ", verification);
+
+        //send verification email
+        //TODO Send verifycayion email
+        await sendVerificationEmail(user.email, token, user.name);
+        console.log("Verfication email sent successfully");
+      } catch (error) {
+        console.log("Error sending verifycation email", error);
+      }
     }
+
     res.status(201).send({
       message:
         user.type === "teacher"
-          ? "Registeration successfully! Please check your email to verify your account"
+          ? "Registration successfully! Please check your email to verify your account"
           : "User registered successfully",
       user: {
         id: user.id,
         name: user.name,
         email: user.email,
         type: user.type,
-        ...(user.type === "teacher" && { isVerified: user.isVerified }),
+        ...(user.type === "teacher" && { isVerified: user.isVerified }), // เพิ่ม isVerified ถ้า type เป็น teacher
+
+        //ที่ต้องใช้ object นี้เพราะ เดี๋ยวใช้ user password จะหลุดออกไปด้วย
       },
-    });
+    }); // 201 successfully created
   } catch (error) {
-    res.status(500).send({
-      message: error.message || "Some error occured while creating user!",
+    return res.status(500).send({
+      message: error.message || "Some error occurred while creating the user.",
     });
   }
 };
+
+const verifyEmail = async (req, res) => {
+  const { token } = req.params;
+  console.log("Verification token:", token);
+  if (!token) {
+    res.status(400).send({ message: "Token is missing" });
+  }
+  try {
+    const verificationToken = await db.VerificationToken.findOne({
+      where: { token: token },
+    });
+    console.log(verificationToken);
+    if (!verificationToken) {
+      return res.status(404).send({ message: "Invalid or expired token" });
+    }
+    //check expire token
+    if (new Date() > verificationToken.expiredAt) {
+      await verificationToken.destroy();
+      return res.status(400).send({ message: "verification Token is expire" });
+    }
+    const user = await User.findByPk(verificationToken.userId);
+    if (!user) {
+      return res.status(400).send({ message: "user not Found" });
+    }
+    await user.update({ isVerified: true });
+    await verificationToken.destroy();
+    //return web view
+    const htlmPath = path.join(
+      process.cwd(),
+      "views",
+      "verification-sucess.html"
+    );
+    res.sendFile(htlmPath);
+  } catch (error) {
+    return res.status(500).send({
+      message:
+        error.message || "Some error occurred while verifying the email.",
+    });
+  }
+};
+const authController = { signUp, verifyEmail };
 
 export default authController;

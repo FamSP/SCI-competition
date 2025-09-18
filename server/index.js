@@ -1,7 +1,9 @@
 import express from "express";
+import db from "./models/index.js";
 const app = express();
 import dotenv from "dotenv";
 dotenv.config();
+const NODE_ENV = process.env.NODE_ENV || "development";
 const PORT = process.env.PORT || 5000;
 const FONTEND = process.env.FONT_END_ENV;
 import activityRounter from "./routers/activity.router.js";
@@ -16,6 +18,20 @@ app.use(
     allowedHeaders: ["Content-Type", "Authorization", "x-access-token"],
   })
 );
+
+const initDatabase = async () => {
+  try {
+    await db.sequelize.authenticate();
+    console.log("database connection established successfully");
+    if (NODE_ENV === "development") {
+      // await db.sequelize.sync({ after: true });
+      console.log("database Synced in development");
+    }
+  } catch (error) {
+    console.log("Unable to connect to database", error);
+  }
+};
+initDatabase();
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));

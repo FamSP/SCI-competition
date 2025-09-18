@@ -1,6 +1,6 @@
 import { DataTypes } from "sequelize";
 import sequelize from "./db.js";
-import becrypt from "becryptjs";
+import bcrypt from "bcryptjs";
 
 const User = sequelize.define(
   "user",
@@ -8,6 +8,7 @@ const User = sequelize.define(
     id: {
       type: DataTypes.INTEGER,
       primaryKey: true,
+      autoIncrement: true,
     },
     name: {
       type: DataTypes.STRING,
@@ -31,22 +32,31 @@ const User = sequelize.define(
     },
     isVerified: {
       type: DataTypes.BOOLEAN,
-      default: false,
+      defaultValue: false,
+      allowNull: false,
+    },
+    //teacher attribute
+    school: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    phone: {
+      type: DataTypes.STRING,
       allowNull: false,
     },
   },
   {
-    hook: {
+    hooks: {
       beforeCreate: async (user) => {
         if (user.password) {
           const salt = await bcrypt.genSalt(10);
-          user.password = await becrypt.hash(user.password, salt);
+          user.password = await bcrypt.hash(user.password, salt);
         }
       },
       beforeUpdate: async (user) => {
         if (user.changed("password")) {
           const salt = await bcrypt.genSalt(10);
-          user.password = await becrypt.hash(user.password, salt);
+          user.password = await bcrypt.hash(user.password, salt);
         }
       },
     },
