@@ -5,10 +5,12 @@ import Swal from "sweetalert2";
 
 const register = () => {
   const [register, setRegister] = useState({
-    username: "",
     name: "",
     email: "",
     password: "",
+    type: "",
+    school: "",
+    phone: "",
   });
   const navigate = useNavigate();
   const handleChange = (e) => {
@@ -20,10 +22,12 @@ const register = () => {
     console.log(123);
     try {
       const newUser = await AuthService.register(
-        register.username,
         register.name,
         register.email,
-        register.password
+        register.password,
+        register.type,
+        register.phone,
+        register.school
       );
 
       if (newUser.status === 200) {
@@ -33,10 +37,12 @@ const register = () => {
           icon: "success",
         });
         setRegister({
-          username: "",
           name: "",
           email: "",
           password: "",
+          type: "",
+          school: "",
+          phone: "",
         });
         navigate("/login");
       }

@@ -1,22 +1,21 @@
 import React from "react";
 import { useAuthContext } from "../context/authContext";
-import UserProfile from "./UserProfile";
 const NavBar = () => {
   const { user } = useAuthContext();
-  const menuItems = [
-    {
-      name: "Search",
-      url: "/seatv",
-    },
-    {
-      name: "Add Restaurant",
-      url: "/add",
-    },
-    {
-      name: "About Us",
-      url: "/about",
-    },
-  ];
+  //   const menuItems = [
+  //     {
+  //       name: "Search",
+  //       url: "/seatv",
+  //     },
+  //     {
+  //       name: "Add Restaurant",
+  //       url: "/add",
+  //     },
+  //     {
+  //       name: "About Us",
+  //       url: "/about",
+  //     },
+  //   ];
   return (
     <div>
       <div className="navbar bg-base-100 shadow-sm">

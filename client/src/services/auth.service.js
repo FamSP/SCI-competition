@@ -3,17 +3,19 @@ import TokenService from "./token.service";
 
 const API_URL = import.meta.env.VITE_AUT_API;
 
-const register = async (username, name, email, password) => {
+const register = async (name, email, password, type, school, phone) => {
   return await api.post(API_URL + "/signup", {
-    username,
     name,
     email,
     password,
+    type,
+    school,
+    phone,
   });
 };
 
-const login = async (username, password) => {
-  const response = await api.post(API_URL + "/signin", { username, password });
+const login = async (email, password) => {
+  const response = await api.post(API_URL + "/signin", { email, password });
   //saving user data to local storage
   if (!response.data.token) {
     return response;

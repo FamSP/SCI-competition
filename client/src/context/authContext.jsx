@@ -1,10 +1,4 @@
-import {
-  useState,
-  useContext,
-  createContext,
-  useEffect,
-  children,
-} from "react";
+import { useState, useContext, createContext, useEffect } from "react";
 import AuthService from "../services/auth.service";
 import TokenService from "../services/token.service";
 
@@ -23,10 +17,10 @@ export const AuthProvider = ({ children }) => {
     TokenService.setUser(user);
   }, [user]);
 
-  function getUser  () {
+  function getUser() {
     const currentUser = TokenService.getUser();
     return currentUser;
-  };
+  }
 
   return (
     <AuthContext.Provider value={{ user, login, logout }}>

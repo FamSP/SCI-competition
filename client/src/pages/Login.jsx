@@ -4,17 +4,17 @@ import { useNavigate } from "react-router";
 import Swal from "sweetalert2";
 import { useAuthContext } from "../context/authContext";
 const Login = () => {
-  const [login, setLogin] = useState({
+  const [loginData, setLoginData] = useState({
     username: "",
     password: "",
   });
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setLogin((prevLogin) => ({ ...prevLogin, [name]: value }));
+    setLoginData({ ...loginData, [name]: value });
   };
   const navigate = useNavigate();
-  const { login: loginFn, user } = useAuthContext();
+  const { login, user } = useAuthContext();
   // useEffect นั้นใช้สำหรับการในการโหลดหน้าเว็ป
   useEffect(
     () => {
@@ -27,7 +27,6 @@ const Login = () => {
   );
 
   const handleSubmit = async () => {
-    console.log(123);
     try {
       const currentUser = await AuthService.login(
         login.username,
@@ -37,14 +36,14 @@ const Login = () => {
       if (currentUser.status === 200) {
         Swal.fire({
           title: "User login",
-          text: "login succesfully",
+          text: currentUser?.data?.message,
           icon: "success",
         }).then(() => {
-          setLogin({
+          setLoginData({
             username: "",
             password: "",
           });
-          loginFn(currentUser.data);
+          login(currentUser.data);
           navigate("/");
         });
       }
@@ -59,7 +58,7 @@ const Login = () => {
   };
 
   const handleCancel = () => {
-    setLogin({
+    setLoginData({
       username: "",
       password: "",
     });
@@ -80,7 +79,7 @@ const Login = () => {
               <input
                 type="text"
                 name="username"
-                value={login.username}
+                value={loginData.username}
                 onChange={handleChange}
                 className="w-full input input-bordered"
                 placeholder="Enter your username"
@@ -95,7 +94,7 @@ const Login = () => {
               <input
                 type="password"
                 name="password"
-                value={login.password}
+                value={loginData.password}
                 onChange={handleChange}
                 className="w-full input input-bordered"
                 placeholder="Enter your password"

@@ -9,7 +9,7 @@ const setUser = (user) => {
 const getLocalAccessToken = () => {
   const user = getUser();
   //เอามาแค่ token จากที่getมา
-  return user?.token;
+  return user?.accessToken;
   // "?" ถ้าใช้ตัวนี้คือถ้าเป็น undifind ก็จะไม่แสดงออกมาก
 };
 
