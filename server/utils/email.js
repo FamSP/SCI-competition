@@ -7,7 +7,7 @@ import { getVerificationEmailTemplate } from "./emailTemplate.js";
 const transpotter = nodemailer.createTransport({
   service: "gmail",
   auth: {
-    user: process.env.STMP_USER,
+    user: process.env.SMTP_USER,
     pass: process.env.SMTP_PASSWORD,
   },
 });

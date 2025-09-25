@@ -6,6 +6,7 @@ import Register from "../pages/Register";
 
 import { Home } from "../pages/Home";
 import NotFound from "../pages/NotFound";
+import AddActivity from "../pages/AddActivity";
 
 const router = createBrowserRouter([
   {
@@ -23,6 +24,10 @@ const router = createBrowserRouter([
       {
         path: "/register",
         element: <Register />,
+      },
+      {
+        path: "/add-activity",
+        element: <AddActivity />,
       },
     ],
   },

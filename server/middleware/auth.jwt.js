@@ -17,39 +17,78 @@ const verifyToken = (req, res, next) => {
   });
 };
 
-const isAdmin = (req, res, next) => {
-  User.findByPk(req.username).then((user) => {
-    user.getRoles().then((roles) => {
-      for (let i = 0; i < roles.length; i++) {
-        if (roles[i].name === "admin") {
-          next();
-          return;
-        }
-      }
-      return res
-        .status(401)
-        .send({ message: "Unatherized you don't have permission" });
-    });
-  });
+const isAdmin = async (req, res, next) => {
+  try {
+    const user = await User.findByPk(req.username);
+    if (!user) {
+      return res.status(404).send({ message: "User not found!" });
+    }
+    if (user.type === "admin") {
+      next();
+      return;
+    }
+    return res
+      .status(401)
+      .send({ message: "Unatherized you don't have permission" });
+  } catch (error) {
+    return res.status(500).send({ message: "server error during Admin auth" });
+  }
 };
 
-const isModOrAdmin = (req, res, next) => {
-  console.log("sdfsd" + req.username);
-  console.log(User);
-  User.findByPk(req.username).then((user) => {
-    user.getRoles().then((roles) => {
-      for (let i = 0; i < roles.length; i++) {
-        if (roles[i].name === "admin" || roles[i].name === "moderator") {
-          next();
-          return;
-        }
-      }
-
-      return res
-        .status(401)
-        .send({ message: "Unatherized you don't have permission" });
-    });
-  });
+const isTeacher = async (req, res, next) => {
+  try {
+    const user = await User.findByPk(req.username);
+    if (!user) {
+      return res.status(404).send({ message: "User not found!" });
+    }
+    if (user.type === "teacher") {
+      next();
+      return;
+    }
+    return res
+      .status(401)
+      .send({ message: "Unatherized you don't have permission" });
+  } catch (error) {
+    return res.status(500).send({ message: "server error during Admin auth" });
+  }
 };
-const authjwt = { verifyToken, isAdmin, isModOrAdmin };
+
+const isJudge = async (req, res, next) => {
+  try {
+    const user = await User.findByPk(req.username);
+    if (!user) {
+      return res.status(404).send({ message: "User not found!" });
+    }
+    if (user.type === "judge") {
+      next();
+      return;
+    }
+    return res
+      .status(401)
+      .send({ message: "Unatherized you don't have permission" });
+  } catch (error) {
+    return res.status(500).send({ message: "server error during Admin auth" });
+  }
+};
+
+const authjwt = { verifyToken, isAdmin, isTeacher, isJudge };
 export default authjwt;
+
+// const isModOrAdmin = (req, res, next) => {
+//   console.log("sdfsd" + req.username);
+//   console.log(User);
+//   User.findByPk(req.username).then((user) => {
+//     user.getRoles().then((roles) => {
+//       for (let i = 0; i < roles.length; i++) {
+//         if (roles[i].name === "admin" || roles[i].name === "moderator") {
+//           next();
+//           return;
+//         }
+//       }
+
+//       return res
+//         .status(401)
+//         .send({ message: "Unatherized you don't have permission" });
+//     });
+//   });
+// };

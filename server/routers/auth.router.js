@@ -7,7 +7,7 @@ const router = express.Router(); // สร้าง router object
 router.post("/signup", authController.signUp); // path /api/v1/register/signup
 
 // POST เข้าสู่ระบบ
-// router.post("/signin",authController.signIn); // path /api/v1/register/signin
+router.post("/signin", authController.signIn); // path /api/v1/register/signin
 
 //GET ยืนยันอีเมล
 router.get("/verify/:token", authController.verifyEmail);

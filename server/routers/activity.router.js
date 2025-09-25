@@ -3,7 +3,12 @@ import authMiddleware from "../middleware/auth.jwt.js";
 import express from "express";
 const router = express.Router();
 // Create
-router.post("/", activityController.create);
+router.post(
+  "/ac",
+  authMiddleware.verifyToken,
+  authMiddleware.isAdmin,
+  activityController.create
+);
 //Get All
 router.get("/", activityController.getAll);
 //Get by ID
